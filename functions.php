@@ -416,19 +416,45 @@ function woocommerce_product_custom_image_upload_display()
         'woocommerce_custom_image_admin_checkbox'
     );
     if ($woocommerce_custom_product_image_allowed) {
-         $uploadFile   = "";
-         $uploadFile   .='<div id="upload_image">';
-         $uploadFile .='<input id="upload_custom_img" name="upload_custom_img" type="file"    multiple="false">';
-         $uploadFile .='<span id="">';
-         $uploadFile .='</span>';
-         $uploadFile .='</div>';
-         echo $uploadFile;
+    ?>
+        <p class="form-row validate-required" id="cimg" >
+            <label for="file_field"><?php echo __("Upload Image") . ': '; ?>
+                <input type='file' name='custom_image' accept='image/*'>
+                <input type='submit' name='submit_cimg' accept='image/*'>
+            </label>
+        </p>
+    <?php
     }
 }
 
 add_action(
     'woocommerce_before_add_to_cart_button',
     'woocommerce_product_custom_image_upload_display'
+);
+
+// PRODUCT: Show uploaded image() on product page
+function woocommerce_product_custom_image_show_on_upload() {
+    if( isset($_FILES['custom_image']) && ! empty($_FILES['custom_image']) ) {
+        $upload       = wp_upload_bits( $_FILES['custom_image']['name'], null, file_get_contents( $_FILES['custom_image']['tmp_name'] ) );
+        $filetype     = wp_check_filetype( basename( $upload['file'] ), null );
+        $upload_dir   = wp_upload_dir();
+        $upl_base_url = is_ssl() ? str_replace('http://', 'https://', $upload_dir['baseurl']) : $upload_dir['baseurl'];
+        $base_name    = basename( $upload['file'] );
+
+        $file_upload = array(
+                    'guid'      => $upl_base_url .'/'. _wp_relative_upload_path( $upload['file'] ), // Url
+                    'file_type' => $filetype['type'], // File type
+                    'file_name' => $base_name, // File name
+                    'title'     => ucfirst( preg_replace('/\.[^.]+$/', '', $base_name ) ), // Title
+        );
+
+        echo '<img src=' . $file_upload['guid'] . '>';
+    }
+}
+
+add_action(
+    'woocommerce_before_add_to_cart_button',
+    'woocommerce_product_custom_image_show_on_upload'
 );
 
 //PRODUCT/CART/CHECKOUT - Save custom image selected by user
