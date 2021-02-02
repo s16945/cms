@@ -59,6 +59,7 @@ function hook_custom_fields_into_view()
     global $post;
     echo get_post_meta($post->ID, '_custom_product_text', true);
 }
+
 add_action(
     'woocommerce_single_product_summary',
     'hook_custom_fields_into_view',
@@ -99,6 +100,7 @@ function save_woocommerce_product_custom_text_input($post_id)
     );
     $product->save();
 }
+
 add_action(
     'woocommerce_process_product_meta',
     'save_woocommerce_product_custom_text_input'
@@ -114,7 +116,14 @@ function woocommerce_product_custom_text_input_display()
     );
     if ($woocommerce_custom_product_text_allowed) {
         printf(
-            '<div><label>%s</label><input type="text" id="woocommerce_product_custom_text_input" name="woocommerce_product_custom_text_input" value=""></div>',
+            '<div>
+                        <label>%s</label>
+                            <input 
+                                type="text" 
+                                id="woocommerce_product_custom_text_input" 
+                                name="woocommerce_product_custom_text_input" 
+                                value="Wprowadź tekst">
+                            </div>',
             esc_html("Wpisz własny tekst")
         );
     }
@@ -125,12 +134,62 @@ add_action(
     'woocommerce_product_custom_text_input_display'
 );
 
+// PRODUCT: DISPLAY ADDITIONAL FIELDS IF CREATING CUSTOM TEXT IS ALLOWED
+function woocommerce_product_custom_text_additional_fields_display()
+{
+    global $post;
+    $product = wc_get_product($post->ID);
+    $woocommerce_custom_product_text_allowed = $product->get_meta(
+        'woocommerce_custom_text_admin_checkbox'
+    );
+    if ($woocommerce_custom_product_text_allowed) {
+        printf(
+            '<div>
+                        <label>Font Size</label>
+                            <input 
+                                type="number" 
+                                id="woocommerce_product_custom_text_font_size" 
+                                name="woocommerce_product_custom_text_font_size" 
+                                value="10">
+                            </div>',
+        );
+        // TPYING IN HEIGHT / WIDTH doesnt really work as expected
+//        printf(
+//            '<div>
+//                        <label>Height</label>
+//                            <input
+//                                type="number"
+//                                id="woocommerce_product_custom_text_height"
+//                                name="woocommerce_product_custom_text_height"
+//                                value="0">
+//                            </div>',
+//        );
+//        printf(
+//            '<div>
+//                        <label>Width</label>
+//                            <input
+//                                type="number"
+//                                id="woocommerce_product_custom_text_width"
+//                                name="woocommerce_product_custom_text_width"
+//                                value="0">
+//                            </div>',
+//        );
+    }
+}
+
+add_action(
+    'woocommerce_before_add_to_cart_button',
+    'woocommerce_product_custom_text_additional_fields_display'
+);
+
+
 // PRODUCT/CART/CHECKOUT - Save custom text value inputted by user
 function woocommerce_add_custom_text_to_cart_item(
     $cart_item_data,
     $product_id,
     $variation_id
-) {
+)
+{
     $product_custom_text = filter_input(
         INPUT_POST,
         'woocommerce_product_custom_text_input'
@@ -175,144 +234,67 @@ add_filter(
     2
 );
 
+// ORDER/ADMIN: Display custom text in order details and in admin panel
+function woocommerce_display_custom_text_order( $item, $cart_item_key, $values, $order ) {
+ foreach( $item as $cart_item_key=>$values ) {
+ if( !empty( $values['product_custom_text'] ) ) {
+ $item->add_meta_data( __( 'Custom text', 'text' ), $values['product_custom_text'], true );
+ }
+ }
+}
+add_action( 'woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_text_order', 10, 4 );
+
+
+
+
+
 // ================== END OF CUSTOM TEXT FUNCTIONS
 
 /**
- * Radio buttons for product custom color
+ * Product custom color
  */
-
-// ADMIN: Helper function for populating list of available colors
-function woocommerce_wp_multi_select($field, $variation_id = 0)
+// ADMIN: Show checkbox to unable product color customizing
+function woocommerce_product_custom_color_input()
 {
-    global $thepostid, $post;
-
-    if ($variation_id == 0) {
-        $the_id = empty($thepostid) ? $post->ID : $thepostid;
-    } else {
-        $the_id = $variation_id;
-    }
-
-    $field['class'] = isset($field['class']) ? $field['class'] : 'select short';
-    $field['wrapper_class'] = isset($field['wrapper_class'])
-        ? $field['wrapper_class']
-        : '';
-    $field['name'] = isset($field['name']) ? $field['name'] : $field['id'];
-
-    $meta_data = maybe_unserialize(get_post_meta($the_id, $field['id'], true));
-    $meta_data = $meta_data ? $meta_data : [];
-
-    $field['value'] = isset($field['value']) ? $field['value'] : $meta_data;
-
-    echo '<p class="form-field ' .
-        esc_attr($field['id']) .
-        '_field ' .
-        esc_attr($field['wrapper_class']) .
-        '"><label for="' .
-        esc_attr($field['id']) .
-        '">' .
-        wp_kses_post($field['label']) .
-        '</label><select id="' .
-        esc_attr($field['id']) .
-        '" name="' .
-        esc_attr($field['name']) .
-        '" class="' .
-        esc_attr($field['class']) .
-        '" multiple="multiple">';
-
-    foreach ($field['options'] as $key => $value) {
-        echo '<option value="' .
-            esc_attr($key) .
-            '" ' .
-            (in_array($key, $field['value']) ? 'selected="selected"' : '') .
-            '>' .
-            esc_html($value) .
-            '</option>';
-    }
-    echo '</select> ';
-    if (!empty($field['description'])) {
-        if (isset($field['desc_tip']) && false !== $field['desc_tip']) {
-            echo '<img class="help_tip" data-tip="' .
-                esc_attr($field['description']) .
-                '" src="' .
-                esc_url(WC()->plugin_url()) .
-                '/assets/images/help.png" height="16" width="16" />';
-        } else {
-            echo '<span class="description">' .
-                wp_kses_post($field['description']) .
-                '</span>';
-        }
-    }
+    $args = [
+        'id' => 'woocommerce_custom_color_admin_checkbox',
+        'label' => __('Allow custom color?', 'cwoa'),
+    ];
+    woocommerce_wp_checkbox($args);
 }
 
 add_action(
     'woocommerce_product_options_general_product_data',
-    'woocommerce_product_available_color_options',
-    20
+    'woocommerce_product_custom_color_input'
 );
 
-// ADMIN: Show multiselection list to define available product colors (FIXME selecting should be more flexible, not hardcoded)
-function woocommerce_product_available_color_options()
+// ADMIN: Save product custom colors selection
+function save_woocommerce_product_custom_color($post_id)
 {
-    global $post;
-
-    echo '<div class="options_group hide_if_variable"">';
-
-    woocommerce_wp_multi_select([
-        'id' => 'woocommerce_custom_color',
-        'name' => 'woocommerce_custom_color[]',
-        'label' => __('Pick product available colors', 'woocommerce'),
-        'options' => [
-            'default' => __('Default', 'woocommerce'),
-            'red' => __('Red', 'woocommerce'),
-            'black' => __('Black', 'woocommerce'),
-            'green' => __('Green', 'woocommerce'),
-            'blue' => __('Blue', 'woocommerce'),
-        ],
-    ]);
-
-    echo '</div>';
+    $product = wc_get_product($post_id);
+    $woocommerce_custom_color_allowed = isset(
+        $_POST['woocommerce_custom_color_admin_checkbox']
+    )
+        ? $_POST['woocommerce_custom_color_admin_checkbox']
+        : false;
+    $product->update_meta_data(
+        'woocommerce_custom_color_admin_checkbox',
+        $woocommerce_custom_color_allowed
+    );
+    $product->save();
 }
 
 add_action(
     'woocommerce_process_product_meta',
-    'woocommerce_save_product_available_colors',
-    30,
-    1
+    'save_woocommerce_product_custom_color'
 );
 
-// ADMIN: Save product custom colors selection
-function woocommerce_save_product_available_colors($post_id)
-{
-    if (isset($_POST['woocommerce_custom_color'])) {
-        $post_data = $_POST['woocommerce_custom_color'];
-        // Data sanitization
-        $sanitize_data = [];
-        if (is_array($post_data) && sizeof($post_data) > 0) {
-            foreach ($post_data as $value) {
-                $sanitize_data[] = esc_attr($value);
-            }
-        }
-        update_post_meta($post_id, 'woocommerce_custom_color', $sanitize_data);
-    }
-}
-
-// PRODUCT: Display radio buttons with available product custom colors
+// PRODUCT: Display HTML5 color picker
 function woocommerce_product_available_colors_display()
 {
-    global $post;
-    $product = wc_get_product($post->ID);
-    $woocommerce_custom_colors = $product->get_meta('woocommerce_custom_color');
-
-    foreach ($woocommerce_custom_colors as $color) {
-        printf(
-            '<input type="radio" name="custom_color" value="' .
-                esc_attr($color) .
-                '">' .
-                esc_attr($color) .
-                '<br>'
-        );
-    }
+    printf('<input style="width: 100px" type="color" id="favcolor" name="favcolor" value="#ffffff">');
 }
+
 
 add_action(
     'woocommerce_before_add_to_cart_button',
@@ -324,8 +306,9 @@ function woocommerce_add_custom_color_to_cart_item(
     $cart_item_data,
     $product_id,
     $variation_id
-) {
-    $product_custom_color = filter_input(INPUT_POST, 'custom_color');
+)
+{
+    $product_custom_color = filter_input(INPUT_POST, 'favcolor');
 
     if (empty($product_custom_color)) {
         return $cart_item_data;
@@ -346,16 +329,15 @@ add_filter(
 // CART: Display custom color in cart
 function woocommerce_display_custom_color_cart($item_data, $cart_item)
 {
-    if (empty($cart_item['product_custom_color'])) {
-        return $item_data;
-    }
+    if (!empty($cart_item['product_custom_color'])) {
 
     $item_data[] = [
         'key' => __('Custom color', 'woocommerce'),
-        'value' => wc_clean($cart_item['product_custom_color']),
+        'value' => $cart_item['product_custom_color'],
         'display' => '',
-    ];
 
+    ];
+}
     return $item_data;
 }
 
@@ -365,6 +347,15 @@ add_filter(
     10,
     2
 );
+
+function woocommerce_display_custom_color_order( $item, $cart_item_key, $values, $order ) {
+ foreach( $item as $cart_item_key=>$values ) {
+ if( !empty( $values['product_custom_color'] ) ) {
+ $item->add_meta_data( __( 'Custom color', 'color' ), $values['product_custom_color'], true );
+ }
+ }
+}
+add_action( 'woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4 );
 
 // ================== END OF CUSTOM COLOR FUNCTIONS
 
@@ -402,6 +393,7 @@ function save_woocommerce_product_custom_image_upload($post_id)
     );
     $product->save();
 }
+
 add_action(
     'woocommerce_process_product_meta',
     'save_woocommerce_product_custom_image_upload'
@@ -416,14 +408,14 @@ function woocommerce_product_custom_image_upload_display()
         'woocommerce_custom_image_admin_checkbox'
     );
     if ($woocommerce_custom_product_image_allowed) {
-    ?>
-        <p class="form-row validate-required" id="cimg" >
+        ?>
+        <p class="form-row validate-required" id="cimg">
             <label for="file_field"><?php echo __("Upload Image") . ': '; ?>
                 <input type='file' name='custom_image' accept='image/*'>
                 <input type='submit' name='submit_cimg' accept='image/*'>
             </label>
         </p>
-    <?php
+        <?php
     }
 }
 
@@ -433,19 +425,20 @@ add_action(
 );
 
 // PRODUCT: Show uploaded image() on product page
-function woocommerce_product_custom_image_show_on_upload() {
-    if( isset($_FILES['custom_image']) && ! empty($_FILES['custom_image']) ) {
-        $upload       = wp_upload_bits( $_FILES['custom_image']['name'], null, file_get_contents( $_FILES['custom_image']['tmp_name'] ) );
-        $filetype     = wp_check_filetype( basename( $upload['file'] ), null );
-        $upload_dir   = wp_upload_dir();
+function woocommerce_product_custom_image_show_on_upload()
+{
+    if (isset($_FILES['custom_image']) && !empty($_FILES['custom_image'])) {
+        $upload = wp_upload_bits($_FILES['custom_image']['name'], null, file_get_contents($_FILES['custom_image']['tmp_name']));
+        $filetype = wp_check_filetype(basename($upload['file']), null);
+        $upload_dir = wp_upload_dir();
         $upl_base_url = is_ssl() ? str_replace('http://', 'https://', $upload_dir['baseurl']) : $upload_dir['baseurl'];
-        $base_name    = basename( $upload['file'] );
+        $base_name = basename($upload['file']);
 
         $file_upload = array(
-                    'guid'      => $upl_base_url .'/'. _wp_relative_upload_path( $upload['file'] ), // Url
-                    'file_type' => $filetype['type'], // File type
-                    'file_name' => $base_name, // File name
-                    'title'     => ucfirst( preg_replace('/\.[^.]+$/', '', $base_name ) ), // Title
+            'guid' => $upl_base_url . '/' . _wp_relative_upload_path($upload['file']), // Url
+            'file_type' => $filetype['type'], // File type
+            'file_name' => $base_name, // File name
+            'title' => ucfirst(preg_replace('/\.[^.]+$/', '', $base_name)), // Title
         );
 
         echo '<img src=' . $file_upload['guid'] . '>';
@@ -462,18 +455,18 @@ function woocommerce_add_custom_image_to_cart_item(
     $cart_item_data,
     $product_id,
     $variation_id
-) {
+)
+{
     $product_custom_image = filter_input(
         INPUT_POST,
-        'upload_custom_img'
+        'custom_image'
     );
 
-    if (empty($product_custom_image)) {
-        return $cart_item_data;
-    }
+    if (!empty($product_custom_image)) {
+
 
     $cart_item_data['product_custom_image'] = $product_custom_image;
-
+}
     return $cart_item_data;
 }
 
@@ -484,21 +477,20 @@ add_filter(
     3
 );
 
-// CART: Display custom text in cart
+// CART: Display custom image in cart
 function woocommerce_display_custom_image_cart($item_data, $cart_item)
 {
-    if (empty($cart_item['product_custom_image'])) {
-        return $item_data;
-    }
+    if (!empty($cart_item['product_custom_image'])) {
 
     $item_data[] = [
         'key' => __('Custom image', 'woocommerce'),
         'value' => wc_clean($cart_item['product_custom_image']),
         'display' => '',
     ];
-
+}
     return $item_data;
 }
+
 
 add_filter(
     'woocommerce_get_item_data',
@@ -507,4 +499,98 @@ add_filter(
     2
 );
 
+function woocommerce_display_custom_image_order( $item, $cart_item_key, $values, $order ) {
+ foreach( $item as $cart_item_key=>$values ) {
+ if( !empty( $values['product_custom_image'] ) ) {
+ $item->add_meta_data( __( 'Custom image', 'image' ), $values['product_custom_image'], true );
+ }
+ }
+}
+add_action( 'woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4 );
+
 // ================== END OF CUSTOM IMAGE FUNCTIONS
+
+function wpb_hook_javascript()
+{
+    if (is_product()) {
+        ?>
+        <script>
+            jQuery(document).ready(function ($) {
+                const imageContainer = document.getElementsByClassName('woocommerce-product-gallery__image')[0];
+                imageContainer.insertAdjacentHTML('afterend', `
+                    <div id="canvas-wrapper" style="position: absolute">
+                        <canvas id="product-canvas"></canvas>
+                    </div>
+                `);
+                const canvas = new fabric.Canvas('product-canvas');
+
+
+                // declare where to put canvas on product
+                const canvasWrapper = document.getElementById('canvas-wrapper');
+                canvasWrapper.style.left = '12%';
+                canvasWrapper.style.top = '31%';
+
+                // initial canvas properties
+                canvas.setWidth(0.77 * imageContainer.clientWidth);
+                canvas.setHeight(0.39 * imageContainer.clientHeight);
+
+                // resize canvas when body changes
+                document.body.onresize = () => {
+                    canvas.setWidth(0.77 * imageContainer.clientWidth);
+                    canvas.setHeight(0.39 * imageContainer.clientHeight);
+                }
+
+                const initialText = 'Wprowadź tekst';
+                canvas.fillStyle = "#fff";
+                const textBox = new fabric.Text(initialText, {left: 0, top: 0, fontSize: 10, editable: false, lockScalingY: true});
+                canvas.add(textBox);
+
+                const textInput = document.getElementById('woocommerce_product_custom_text_input');
+
+                textInput.oninput = () => {
+                    textBox.text = textInput.value;
+                    canvas.renderAll();
+                };
+
+
+                // handle change background color
+                const colorPicker = document.getElementById('favcolor');
+                colorPicker.oninput = () => imageContainer.style.backgroundColor = colorPicker.value;
+
+                // handle change custom text font size
+                const fontSize = document.getElementById('woocommerce_product_custom_text_font_size');
+                fontSize.oninput = () => {
+                    textBox.fontSize = fontSize.value;
+                    canvas.renderAll();
+                }
+
+                // // handle change height
+                // const height = document.getElementById('woocommerce_product_custom_text_height');
+                // height.oninput = () => {
+                //     if (height.value > 0) {
+                //         textBox.set('height', height.value);
+                //     }
+                //     canvas.renderAll();
+                // }
+                //
+                // // handle change width
+                // const width = document.getElementById('woocommerce_product_custom_text_width');
+                // width.oninput = () => {
+                //     if (width.value > 0) {
+                //         textBox.set('width', width.value);
+                //     }
+                //     canvas.renderAll();
+                // }
+                //
+                // // handle object resizing
+                // canvas.on('object:modified', e => {
+                //     width.value = textBox.width;
+                //     height.value = textBox.height;
+                // });
+            });
+        </script>
+        <?php
+    }
+}
+
+add_action('wp_footer', 'wpb_hook_javascript');
