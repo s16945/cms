@@ -153,27 +153,6 @@ function woocommerce_product_custom_text_additional_fields_display()
                                 value="10">
                             </div>',
         );
-        // TPYING IN HEIGHT / WIDTH doesnt really work as expected
-//        printf(
-//            '<div>
-//                        <label>Height</label>
-//                            <input
-//                                type="number"
-//                                id="woocommerce_product_custom_text_height"
-//                                name="woocommerce_product_custom_text_height"
-//                                value="0">
-//                            </div>',
-//        );
-//        printf(
-//            '<div>
-//                        <label>Width</label>
-//                            <input
-//                                type="number"
-//                                id="woocommerce_product_custom_text_width"
-//                                name="woocommerce_product_custom_text_width"
-//                                value="0">
-//                            </div>',
-//        );
     }
 }
 
@@ -235,17 +214,16 @@ add_filter(
 );
 
 // ORDER/ADMIN: Display custom text in order details and in admin panel
-function woocommerce_display_custom_text_order( $item, $cart_item_key, $values, $order ) {
- foreach( $item as $cart_item_key=>$values ) {
- if( !empty( $values['product_custom_text'] ) ) {
- $item->add_meta_data( __( 'Custom text', 'text' ), $values['product_custom_text'], true );
- }
- }
+function woocommerce_display_custom_text_order($item, $cart_item_key, $values, $order)
+{
+    foreach ($item as $cart_item_key => $values) {
+        if (!empty($values['product_custom_text'])) {
+            $item->add_meta_data(__('Custom text', 'text'), $values['product_custom_text'], true);
+        }
+    }
 }
-add_action( 'woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_text_order', 10, 4 );
 
-
-
+add_action('woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_text_order', 10, 4);
 
 
 // ================== END OF CUSTOM TEXT FUNCTIONS
@@ -331,13 +309,13 @@ function woocommerce_display_custom_color_cart($item_data, $cart_item)
 {
     if (!empty($cart_item['product_custom_color'])) {
 
-    $item_data[] = [
-        'key' => __('Custom color', 'woocommerce'),
-        'value' => $cart_item['product_custom_color'],
-        'display' => '',
+        $item_data[] = [
+            'key' => __('Custom color', 'woocommerce'),
+            'value' => $cart_item['product_custom_color'],
+            'display' => '',
 
-    ];
-}
+        ];
+    }
     return $item_data;
 }
 
@@ -348,14 +326,16 @@ add_filter(
     2
 );
 
-function woocommerce_display_custom_color_order( $item, $cart_item_key, $values, $order ) {
- foreach( $item as $cart_item_key=>$values ) {
- if( !empty( $values['product_custom_color'] ) ) {
- $item->add_meta_data( __( 'Custom color', 'color' ), $values['product_custom_color'], true );
- }
- }
+function woocommerce_display_custom_color_order($item, $cart_item_key, $values, $order)
+{
+    foreach ($item as $cart_item_key => $values) {
+        if (!empty($values['product_custom_color'])) {
+            $item->add_meta_data(__('Custom color', 'color'), $values['product_custom_color'], true);
+        }
+    }
 }
-add_action( 'woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4 );
+
+add_action('woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4);
 
 // ================== END OF CUSTOM COLOR FUNCTIONS
 
@@ -441,7 +421,70 @@ function woocommerce_product_custom_image_show_on_upload()
             'title' => ucfirst(preg_replace('/\.[^.]+$/', '', $base_name)), // Title
         );
 
-        echo '<img src=' . $file_upload['guid'] . '>';
+        ?>
+        <script>
+            jQuery(document).ready(function ($) {
+                const mainImageContainer = document.getElementsByClassName('woocommerce-product-gallery__image')[0];
+                mainImageContainer.insertAdjacentHTML('afterend', `
+                    <div id="canvas-wrapper" style="position: absolute">
+                        <canvas id="product-canvas"></canvas>
+                    </div>
+                `);
+                const canvas = new fabric.Canvas('product-canvas');
+
+
+                // declare where to put canvas on product
+                const canvasWrapper = document.getElementById('canvas-wrapper');
+                canvasWrapper.style.left = '12%';
+                canvasWrapper.style.top = '31%';
+
+                // initial canvas properties
+                canvas.setWidth(0.77 * mainImageContainer.clientWidth);
+                canvas.setHeight(0.39 * mainImageContainer.clientHeight);
+
+                // resize canvas when body changes
+                document.body.onresize = () => {
+                    canvas.setWidth(0.77 * mainImageContainer.clientWidth);
+                    canvas.setHeight(0.39 * mainImageContainer.clientHeight);
+                }
+
+                const initialText = 'Wprowadź tekst';
+                canvas.fillStyle = "#fff";
+                const textBox = new fabric.Text(initialText, {
+                    left: 0,
+                    top: 0,
+                    fontSize: 10,
+                    editable: false,
+                    lockScalingY: true
+                });
+                canvas.add(textBox);
+
+                new fabric.Image.fromURL("<?php print($file_upload['guid'])?>", img => {
+                    img.set({top: 50, left : 50, height: 300, width: 300, scaleX: .50, scaleY: .50});
+                    canvas.add(img);
+                });
+
+                const textInput = document.getElementById('woocommerce_product_custom_text_input');
+
+                textInput.oninput = () => {
+                    textBox.text = textInput.value;
+                    canvas.renderAll();
+                };
+
+
+                // handle change background color
+                const colorPicker = document.getElementById('favcolor');
+                colorPicker.oninput = () => mainImageContainer.style.backgroundColor = colorPicker.value;
+
+                // handle change custom text font size
+                const fontSize = document.getElementById('woocommerce_product_custom_text_font_size');
+                fontSize.oninput = () => {
+                    textBox.fontSize = fontSize.value;
+                    canvas.renderAll();
+                }
+            });
+        </script>
+        <?php
     }
 }
 
@@ -465,8 +508,8 @@ function woocommerce_add_custom_image_to_cart_item(
     if (!empty($product_custom_image)) {
 
 
-    $cart_item_data['product_custom_image'] = $product_custom_image;
-}
+        $cart_item_data['product_custom_image'] = $product_custom_image;
+    }
     return $cart_item_data;
 }
 
@@ -482,12 +525,12 @@ function woocommerce_display_custom_image_cart($item_data, $cart_item)
 {
     if (!empty($cart_item['product_custom_image'])) {
 
-    $item_data[] = [
-        'key' => __('Custom image', 'woocommerce'),
-        'value' => wc_clean($cart_item['product_custom_image']),
-        'display' => '',
-    ];
-}
+        $item_data[] = [
+            'key' => __('Custom image', 'woocommerce'),
+            'value' => wc_clean($cart_item['product_custom_image']),
+            'display' => '',
+        ];
+    }
     return $item_data;
 }
 
@@ -499,98 +542,15 @@ add_filter(
     2
 );
 
-function woocommerce_display_custom_image_order( $item, $cart_item_key, $values, $order ) {
- foreach( $item as $cart_item_key=>$values ) {
- if( !empty( $values['product_custom_image'] ) ) {
- $item->add_meta_data( __( 'Custom image', 'image' ), $values['product_custom_image'], true );
- }
- }
-}
-add_action( 'woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4 );
-
-// ================== END OF CUSTOM IMAGE FUNCTIONS
-
-function wpb_hook_javascript()
+function woocommerce_display_custom_image_order($item, $cart_item_key, $values, $order)
 {
-    if (is_product()) {
-        ?>
-        <script>
-            jQuery(document).ready(function ($) {
-                const imageContainer = document.getElementsByClassName('woocommerce-product-gallery__image')[0];
-                imageContainer.insertAdjacentHTML('afterend', `
-                    <div id="canvas-wrapper" style="position: absolute">
-                        <canvas id="product-canvas"></canvas>
-                    </div>
-                `);
-                const canvas = new fabric.Canvas('product-canvas');
-
-
-                // declare where to put canvas on product
-                const canvasWrapper = document.getElementById('canvas-wrapper');
-                canvasWrapper.style.left = '12%';
-                canvasWrapper.style.top = '31%';
-
-                // initial canvas properties
-                canvas.setWidth(0.77 * imageContainer.clientWidth);
-                canvas.setHeight(0.39 * imageContainer.clientHeight);
-
-                // resize canvas when body changes
-                document.body.onresize = () => {
-                    canvas.setWidth(0.77 * imageContainer.clientWidth);
-                    canvas.setHeight(0.39 * imageContainer.clientHeight);
-                }
-
-                const initialText = 'Wprowadź tekst';
-                canvas.fillStyle = "#fff";
-                const textBox = new fabric.Text(initialText, {left: 0, top: 0, fontSize: 10, editable: false, lockScalingY: true});
-                canvas.add(textBox);
-
-                const textInput = document.getElementById('woocommerce_product_custom_text_input');
-
-                textInput.oninput = () => {
-                    textBox.text = textInput.value;
-                    canvas.renderAll();
-                };
-
-
-                // handle change background color
-                const colorPicker = document.getElementById('favcolor');
-                colorPicker.oninput = () => imageContainer.style.backgroundColor = colorPicker.value;
-
-                // handle change custom text font size
-                const fontSize = document.getElementById('woocommerce_product_custom_text_font_size');
-                fontSize.oninput = () => {
-                    textBox.fontSize = fontSize.value;
-                    canvas.renderAll();
-                }
-
-                // // handle change height
-                // const height = document.getElementById('woocommerce_product_custom_text_height');
-                // height.oninput = () => {
-                //     if (height.value > 0) {
-                //         textBox.set('height', height.value);
-                //     }
-                //     canvas.renderAll();
-                // }
-                //
-                // // handle change width
-                // const width = document.getElementById('woocommerce_product_custom_text_width');
-                // width.oninput = () => {
-                //     if (width.value > 0) {
-                //         textBox.set('width', width.value);
-                //     }
-                //     canvas.renderAll();
-                // }
-                //
-                // // handle object resizing
-                // canvas.on('object:modified', e => {
-                //     width.value = textBox.width;
-                //     height.value = textBox.height;
-                // });
-            });
-        </script>
-        <?php
+    foreach ($item as $cart_item_key => $values) {
+        if (!empty($values['product_custom_image'])) {
+            $item->add_meta_data(__('Custom image', 'image'), $values['product_custom_image'], true);
+        }
     }
 }
 
-add_action('wp_footer', 'wpb_hook_javascript');
+add_action('woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4);
+
+// ================== END OF CUSTOM IMAGE FUNCTIONS

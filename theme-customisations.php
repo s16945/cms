@@ -60,6 +60,7 @@ final class Theme_Customisations {
 	 */
 	public function theme_customisations_js() {
 		wp_enqueue_script( 'custom-js', plugins_url( '/custom/custom.js', __FILE__ ), array( 'jquery' ) );
+		wp_enqueue_script('fabric', plugins_url('/custom/assets/fabric.min.js'));
 	}
 
 	/**
@@ -115,3 +116,5 @@ function theme_customisations_main() {
  * Initialise the plugin
  */
 add_action( 'plugins_loaded', 'theme_customisations_main' );
+
+add_action( 'wp_enqueue_scripts', 'add_scripts' );
