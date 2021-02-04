@@ -460,11 +460,12 @@ function woocommerce_product_custom_image_show_on_upload()
             const initialText = 'Wprowadź tekst';
             canvas.fillStyle = "#fff";
             const textBox = new fabric.Text(initialText, {
-                left: 0,
-                top: 0,
+                left: 200,
+                top: 200,
                 fontSize: 10,
                 editable: false,
-                lockScalingY: true
+                lockScalingY: true,
+                lockScalingX: true,
             });
             canvas.add(textBox);
 
@@ -472,7 +473,7 @@ function woocommerce_product_custom_image_show_on_upload()
 
             if (imgUrl !== '') {
                 new fabric.Image.fromURL("<?php print($file_upload['guid'])?>", img => {
-                    img.set({top: 50, left: 50, height: 300, width: 300, scaleX: .50, scaleY: .50});
+                    img.set({top: 250, left: 250, height: 300, width: 300, scaleX: .50, scaleY: .50});
                     canvas.add(img);
                 });
             }
