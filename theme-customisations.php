@@ -116,5 +116,3 @@ function theme_customisations_main() {
  * Initialise the plugin
  */
 add_action( 'plugins_loaded', 'theme_customisations_main' );
-
-add_action( 'wp_enqueue_scripts', 'add_scripts' );

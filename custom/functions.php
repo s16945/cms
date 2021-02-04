@@ -407,6 +407,8 @@ add_action(
 // PRODUCT: Show uploaded image() on product page
 function woocommerce_product_custom_image_show_on_upload()
 {
+    $file_upload = array();
+
     if (isset($_FILES['custom_image']) && !empty($_FILES['custom_image'])) {
         $upload = wp_upload_bits($_FILES['custom_image']['name'], null, file_get_contents($_FILES['custom_image']['tmp_name']));
         $filetype = wp_check_filetype(basename($upload['file']), null);
@@ -421,71 +423,77 @@ function woocommerce_product_custom_image_show_on_upload()
             'title' => ucfirst(preg_replace('/\.[^.]+$/', '', $base_name)), // Title
         );
 
-        ?>
-        <script>
-            jQuery(document).ready(function ($) {
-                const mainImageContainer = document.getElementsByClassName('woocommerce-product-gallery__image')[0];
-                mainImageContainer.insertAdjacentHTML('afterend', `
+    }
+
+    ?>
+    <script>
+        jQuery(document).ready(function ($) {
+            const mainImageContainer = document.getElementsByClassName('woocommerce-product-gallery__image')[0];
+            mainImageContainer.insertAdjacentHTML('afterend', `
                     <div id="canvas-wrapper" style="position: absolute">
                         <canvas id="product-canvas"></canvas>
                     </div>
                 `);
-                const canvas = new fabric.Canvas('product-canvas');
+            const canvas = new fabric.Canvas('product-canvas');
 
 
-                // declare where to put canvas on product
-                const canvasWrapper = document.getElementById('canvas-wrapper');
-                canvasWrapper.style.left = '12%';
-                canvasWrapper.style.top = '31%';
+            // declare where to put canvas on product
+            const canvasWrapper = document.getElementById('canvas-wrapper');
+            canvasWrapper.style.left = '12%';
+            canvasWrapper.style.top = '31%';
 
-                // initial canvas properties
+            // initial canvas properties
+            canvas.setWidth(0.77 * mainImageContainer.clientWidth);
+            canvas.setHeight(0.39 * mainImageContainer.clientHeight);
+
+            // resize canvas when body changes
+            document.body.onresize = () => {
                 canvas.setWidth(0.77 * mainImageContainer.clientWidth);
                 canvas.setHeight(0.39 * mainImageContainer.clientHeight);
+            }
 
-                // resize canvas when body changes
-                document.body.onresize = () => {
-                    canvas.setWidth(0.77 * mainImageContainer.clientWidth);
-                    canvas.setHeight(0.39 * mainImageContainer.clientHeight);
-                }
+            const initialText = 'Wprowadź tekst';
+            canvas.fillStyle = "#fff";
+            const textBox = new fabric.Text(initialText, {
+                left: 0,
+                top: 0,
+                fontSize: 10,
+                editable: false,
+                lockScalingY: true
+            });
+            canvas.add(textBox);
 
-                const initialText = 'Wprowadź tekst';
-                canvas.fillStyle = "#fff";
-                const textBox = new fabric.Text(initialText, {
-                    left: 0,
-                    top: 0,
-                    fontSize: 10,
-                    editable: false,
-                    lockScalingY: true
-                });
-                canvas.add(textBox);
+            const imgUrl = "<?php print(empty($file_upload) ? '' : print($file_upload['guid']))?>"
+            console.log('imgUrl: ', imgUrl);
 
+            if (imgUrl !== '') {
                 new fabric.Image.fromURL("<?php print($file_upload['guid'])?>", img => {
-                    img.set({top: 50, left : 50, height: 300, width: 300, scaleX: .50, scaleY: .50});
+                    img.set({top: 50, left: 50, height: 300, width: 300, scaleX: .50, scaleY: .50});
                     canvas.add(img);
                 });
+            }
 
-                const textInput = document.getElementById('woocommerce_product_custom_text_input');
+            const textInput = document.getElementById('woocommerce_product_custom_text_input');
 
-                textInput.oninput = () => {
-                    textBox.text = textInput.value;
-                    canvas.renderAll();
-                };
+            textInput.oninput = () => {
+                textBox.text = textInput.value;
+                canvas.renderAll();
+            };
 
 
-                // handle change background color
-                const colorPicker = document.getElementById('favcolor');
-                colorPicker.oninput = () => mainImageContainer.style.backgroundColor = colorPicker.value;
+            // handle change background color
+            const colorPicker = document.getElementById('favcolor');
+            colorPicker.oninput = () => mainImageContainer.style.backgroundColor = colorPicker.value;
 
-                // handle change custom text font size
-                const fontSize = document.getElementById('woocommerce_product_custom_text_font_size');
-                fontSize.oninput = () => {
-                    textBox.fontSize = fontSize.value;
-                    canvas.renderAll();
-                }
-            });
-        </script>
-        <?php
-    }
+            // handle change custom text font size
+            const fontSize = document.getElementById('woocommerce_product_custom_text_font_size');
+            fontSize.oninput = () => {
+                textBox.fontSize = fontSize.value;
+                canvas.renderAll();
+            }
+        });
+    </script>
+    <?php
 }
 
 add_action(
