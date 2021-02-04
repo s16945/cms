@@ -392,14 +392,14 @@ function woocommerce_product_custom_image_upload_display()
     );
     if ($woocommerce_custom_product_image_allowed) {
         ?>
-		<div class="custom-field-container">
-			<p class="form-row validate-required" id="cimg">
-				<label for="file_field"><?php echo __("Upload Image") . ': '; ?>
-					<input type='file' name='custom_image' accept='image/*'>
-					<input type='submit' name='submit_cimg' accept='image/*' value="Prześlij obrazek">
-				</label>
-			</p>
-		</div>
+        <div class="custom-field-container">
+            <p class="form-row validate-required" id="cimg">
+                <label for="file_field"><?php echo __("Upload Image") . ': '; ?>
+                    <input type='file' name='custom_image' accept='image/*'>
+                    <input type='submit' name='submit_cimg' accept='image/*' value="Prześlij obrazek">
+                </label>
+            </p>
+        </div>
 
         <?php
     }
@@ -515,16 +515,9 @@ function woocommerce_product_custom_image_show_on_upload()
                 this.download = 'canvas.png'
             }
 
-            const checkElement = async selector => {
-                while (document.querySelector(selector) === null) {
-                    await new Promise(resolve => requestAnimationFrame(resolve))
-                }
-                return document.querySelector(selector);
-            }
-
-            checkElement('.zoomImg').then((img) => {
-                console.log('imgsrc ', img.src);
-                new fabric.Image.fromURL(img.src, myImg => {
+            $(window).on('load', function () {
+                const img = $('img.zoomImg');
+                new fabric.Image.fromURL(img[0].src, myImg => {
                     canvas.setBackgroundImage(myImg, canvas.renderAll.bind(canvas), {
                         scaleX: canvas.width / myImg.width,
                         scaleY: canvas.height / myImg.height
