@@ -116,7 +116,7 @@ function woocommerce_product_custom_text_input_display()
     );
     if ($woocommerce_custom_product_text_allowed) {
         printf(
-            '<div>
+            '<div class="custom-field-container">
                         <label>%s</label>
                             <input 
                                 type="text" 
@@ -144,8 +144,8 @@ function woocommerce_product_custom_text_additional_fields_display()
     );
     if ($woocommerce_custom_product_text_allowed) {
         printf(
-            '<div>
-                        <label>Font Size</label>
+            '<div class="custom-field-container">
+                        <label>Wielkość czcionki</label>
                             <input 
                                 type="number" 
                                 id="woocommerce_product_custom_text_font_size" 
@@ -270,7 +270,10 @@ add_action(
 // PRODUCT: Display HTML5 color picker
 function woocommerce_product_available_colors_display()
 {
-    printf('<input style="width: 100px" type="color" id="favcolor" name="favcolor" value="#ffffff">');
+    printf('<div class="custom-field-container">
+	<label>Wybierz kolor</label>
+	<input style="width: 100px" type="color" id="favcolor" name="favcolor" value="#ffffff">
+	</div>');
 }
 
 
@@ -389,12 +392,14 @@ function woocommerce_product_custom_image_upload_display()
     );
     if ($woocommerce_custom_product_image_allowed) {
         ?>
-        <p class="form-row validate-required" id="cimg">
-            <label for="file_field"><?php echo __("Upload Image") . ': '; ?>
-                <input type='file' name='custom_image' accept='image/*'>
-                <input type='submit' name='submit_cimg' accept='image/*'>
-            </label>
-        </p>
+        <div class="custom-field-container">
+			<form id="up_image_form" method="post" enctype="multipart/form-data">
+			    <label for="file_field"><?php echo __("Dodaj własny obrazek") . ': '; ?>
+					<input type='file' name='custom_image' accept='image/*' onchange="form.submit()">
+				</label>
+			</form>
+
+        </div>
         <?php
     }
 }

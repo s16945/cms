@@ -1,5 +1,19 @@
+
+
 /**
  * Add any custom CSS here.
  *
  * This file will be loaded after all other theme stylesheets.
  */
+
+.custom-field-container {
+	display: flex;
+	margin: 20px 5px 20px 5px;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.custom-field-container label {
+	font-size: 1.2rem;
+}
+
