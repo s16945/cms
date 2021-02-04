@@ -392,11 +392,15 @@ function woocommerce_product_custom_image_upload_display()
     );
     if ($woocommerce_custom_product_image_allowed) {
         ?>
-        <p class="form-row validate-required" id="cimg">
-            <label for="file_field"><?php echo __("Upload Image") . ': '; ?>
-                <input type='file' name='custom_image' accept='image/*' onchange="form.submit()">
-            </label>
-        </p>
+		<div class="custom-field-container">
+			<p class="form-row validate-required" id="cimg">
+				<label for="file_field"><?php echo __("Upload Image") . ': '; ?>
+					<input type='file' name='custom_image' accept='image/*'>
+					<input type='submit' name='submit_cimg' accept='image/*' value="Prześlij obrazek">
+				</label>
+			</p>
+		</div>
+
         <?php
     }
 }
