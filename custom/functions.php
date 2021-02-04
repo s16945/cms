@@ -442,20 +442,19 @@ function woocommerce_product_custom_image_show_on_upload()
                 `);
             const canvas = new fabric.Canvas('product-canvas');
 
-
             // declare where to put canvas on product
             const canvasWrapper = document.getElementById('canvas-wrapper');
-            canvasWrapper.style.left = '12%';
-            canvasWrapper.style.top = '31%';
+            canvasWrapper.style.left = '0';
+            canvasWrapper.style.top = '0';
 
             // initial canvas properties
-            canvas.setWidth(0.77 * mainImageContainer.clientWidth);
-            canvas.setHeight(0.39 * mainImageContainer.clientHeight);
+            canvas.setWidth(mainImageContainer.clientWidth);
+            canvas.setHeight(mainImageContainer.clientHeight);
 
             // resize canvas when body changes
             document.body.onresize = () => {
-                canvas.setWidth(0.77 * mainImageContainer.clientWidth);
-                canvas.setHeight(0.39 * mainImageContainer.clientHeight);
+                canvas.setWidth(mainImageContainer.clientWidth);
+                canvas.setHeight(mainImageContainer.clientHeight);
             }
 
             const initialText = 'Wprowadź tekst';
@@ -470,7 +469,6 @@ function woocommerce_product_custom_image_show_on_upload()
             canvas.add(textBox);
 
             const imgUrl = "<?php print(empty($file_upload) ? '' : print($file_upload['guid']))?>"
-            console.log('imgUrl: ', imgUrl);
 
             if (imgUrl !== '') {
                 new fabric.Image.fromURL("<?php print($file_upload['guid'])?>", img => {
@@ -489,7 +487,10 @@ function woocommerce_product_custom_image_show_on_upload()
 
             // handle change background color
             const colorPicker = document.getElementById('favcolor');
-            colorPicker.oninput = () => mainImageContainer.style.backgroundColor = colorPicker.value;
+            colorPicker.oninput = () => {
+                canvas.setBackgroundColor(colorPicker.value);
+                canvas.renderAll();
+            }
 
             // handle change custom text font size
             const fontSize = document.getElementById('woocommerce_product_custom_text_font_size');
@@ -497,6 +498,39 @@ function woocommerce_product_custom_image_show_on_upload()
                 textBox.fontSize = fontSize.value;
                 canvas.renderAll();
             }
+
+            // add button to download project
+            colorPicker.insertAdjacentHTML('afterend', `
+                    <a id="lnkDownload" href="#">Download your project as png</a>
+                `);
+
+            const imageSaver = document.getElementById('lnkDownload');
+            imageSaver.addEventListener('click', saveImage, false);
+
+            function saveImage(e) {
+                this.href = canvas.toDataURL({
+                    format: 'png',
+                    quality: 1,
+                });
+                this.download = 'canvas.png'
+            }
+
+            const checkElement = async selector => {
+                while (document.querySelector(selector) === null) {
+                    await new Promise(resolve => requestAnimationFrame(resolve))
+                }
+                return document.querySelector(selector);
+            }
+
+            checkElement('.zoomImg').then((img) => {
+                console.log('imgsrc ', img.src);
+                new fabric.Image.fromURL(img.src, myImg => {
+                    canvas.setBackgroundImage(myImg, canvas.renderAll.bind(canvas), {
+                        scaleX: canvas.width / myImg.width,
+                        scaleY: canvas.height / myImg.height
+                    });
+                });
+            });
         });
     </script>
     <?php
