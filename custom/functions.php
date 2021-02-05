@@ -17,56 +17,6 @@ if (!defined('ABSPATH')) {
  */
 
 /**
- * Additional fields for products
- */
-
-add_action(
-    'woocommerce_product_options_general_product_data',
-    'woocommerce_product_custom_fields'
-);
-add_action(
-    'woocommerce_process_product_meta',
-    'woocommerce_product_custom_fields_save'
-);
-
-function woocommerce_product_custom_fields()
-{
-    global $woocommerce, $post;
-    echo '<div class=" product_custom_text ">';
-    woocommerce_wp_text_input([
-        'id' => '_custom_product_text',
-        'label' => __('Additional data input field name', 'woocommerce'),
-        'placeholder' => 'Jakis tekst',
-        'desc_tip' => 'true',
-    ]);
-    echo '</div>';
-}
-
-function woocommerce_product_custom_fields_save($post_id)
-{
-    $woocommerce_custom_product_text = $_POST['_custom_product_text'];
-    if (!empty($woocommerce_custom_product_text)) {
-        update_post_meta(
-            $post_id,
-            '_custom_product_text',
-            esc_attr($woocommerce_custom_product_text)
-        );
-    }
-}
-
-function hook_custom_fields_into_view()
-{
-    global $post;
-    echo get_post_meta($post->ID, '_custom_product_text', true);
-}
-
-add_action(
-    'woocommerce_single_product_summary',
-    'hook_custom_fields_into_view',
-    45
-);
-
-/**
  * Input field for product custom text
  */
 
@@ -198,7 +148,7 @@ function woocommerce_display_custom_text_cart($item_data, $cart_item)
     }
 
     $item_data[] = [
-        'key' => __('Custom text', 'woocommerce'),
+        'key' => __('Własny tekst', 'woocommerce'),
         'value' => wc_clean($cart_item['product_custom_text']),
         'display' => '',
     ];
@@ -218,7 +168,7 @@ function woocommerce_display_custom_text_order($item, $cart_item_key, $values, $
 {
     foreach ($item as $cart_item_key => $values) {
         if (!empty($values['product_custom_text'])) {
-            $item->add_meta_data(__('Custom text', 'text'), $values['product_custom_text'], true);
+            $item->add_meta_data(__('Własny tekst', 'text'), $values['product_custom_text'], true);
         }
     }
 }
@@ -270,10 +220,18 @@ add_action(
 // PRODUCT: Display HTML5 color picker
 function woocommerce_product_available_colors_display()
 {
-    printf('<div class="custom-field-container">
-	<label>Wybierz kolor</label>
-	<input style="width: 100px" type="color" id="favcolor" name="favcolor" value="#ffffff">
-	</div>');
+    global $post;
+    $product = wc_get_product($post->ID);
+    $woocommerce_custom_color_allowed = $product->get_meta(
+        'woocommerce_custom_color_admin_checkbox'
+    );
+
+    if ($woocommerce_custom_color_allowed) {
+        printf('<div class="custom-field-container">
+        <label>Wybierz kolor</label>
+        <input style="width: 100px" type="color" id="favcolor" name="favcolor" value="#ffffff">
+        </div>');
+    }
 }
 
 
@@ -313,9 +271,9 @@ function woocommerce_display_custom_color_cart($item_data, $cart_item)
     if (!empty($cart_item['product_custom_color'])) {
 
         $item_data[] = [
-            'key' => __('Custom color', 'woocommerce'),
+            'key' => __('Wybrany kolor', 'woocommerce'),
             'value' => $cart_item['product_custom_color'],
-            'display' => '',
+            'display' => '<div style="display: block; width: 50px; height: 20px; border: 1px solid black; background-color: '.$cart_item['product_custom_color'].'"/>',
 
         ];
     }
@@ -333,7 +291,7 @@ function woocommerce_display_custom_color_order($item, $cart_item_key, $values, 
 {
     foreach ($item as $cart_item_key => $values) {
         if (!empty($values['product_custom_color'])) {
-            $item->add_meta_data(__('Custom color', 'color'), $values['product_custom_color'], true);
+            $item->add_meta_data(__('Wybrany kolor', 'color'), $values['product_custom_color'], true);
         }
     }
 }
