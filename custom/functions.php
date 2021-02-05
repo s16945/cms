@@ -273,7 +273,7 @@ function woocommerce_display_custom_color_cart($item_data, $cart_item)
         $item_data[] = [
             'key' => __('Wybrany kolor', 'woocommerce'),
             'value' => $cart_item['product_custom_color'],
-            'display' => '<div style="display: block; width: 50px; height: 20px; border: 1px solid black; background-color: '.$cart_item['product_custom_color'].'"/>',
+            'display' => '<label></label><div style="display: block; width: 50px; height: 20px; border: 1px solid black; background-color: '.$cart_item['product_custom_color'].'"/>',
 
         ];
     }
@@ -549,6 +549,7 @@ add_filter(
     3
 );
 
+/* Hide base64 url in cart
 // CART: Display custom image in cart
 function woocommerce_display_custom_image_cart($item_data, $cart_item)
 {
@@ -570,7 +571,7 @@ add_filter(
     10,
     2
 );
-
+*/
 function woocommerce_display_custom_image_order($item, $cart_item_key, $values, $order)
 {
     foreach ($item as $cart_item_key => $values) {
@@ -591,3 +592,12 @@ function woocommerce_display_custom_item_cart( $_product_img, $cart_item, $cart_
 add_filter( 'woocommerce_cart_item_thumbnail', 'woocommerce_display_custom_item_cart', 10, 3 );
 
 // ================== END OF CUSTOM IMAGE FUNCTIONS
+
+
+// Custom thumbnail in admin order view
+function woocommerce_admin_order_item_thumbnail( $image, $item_id, $item){
+    $img      =   '<img width="150" height="150" src="'.$item.'" />';
+        return $img;
+};
+
+add_filter( 'woocommerce_admin_order_item_thumbnail', 'filter_woocommerce_admin_order_item_thumbnail', 10, 3 );
