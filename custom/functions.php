@@ -352,7 +352,7 @@ function woocommerce_product_custom_image_upload_display()
         ?>
         <div class="custom-field-container">
             <p class="form-row validate-required" id="cimg">
-                <label for="file_field"><?php echo __("Upload Image") . ': '; ?>
+                <label for="file_field" class="input-img"><?php echo __("Dodaj obrazek") . ': '; ?>
                     <input type='file' name='custom_image' accept='image/*'>
                     <input type='submit' name='submit_cimg' accept='image/*' value="Prześlij obrazek">
                 </label>

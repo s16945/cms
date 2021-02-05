@@ -17,3 +17,14 @@
 	font-size: 1.2rem;
 }
 
+.input-img {
+	display: flex !important;
+	align-items: center;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.input-img input {
+	margin: 10px
+}
+
