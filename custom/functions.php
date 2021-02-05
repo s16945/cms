@@ -118,10 +118,10 @@ function woocommerce_product_custom_text_input_display()
         printf(
             '<div class="custom-field-container">
                         <label>%s</label>
-                            <input 
-                                type="text" 
-                                id="woocommerce_product_custom_text_input" 
-                                name="woocommerce_product_custom_text_input" 
+                            <input
+                                type="text"
+                                id="woocommerce_product_custom_text_input"
+                                name="woocommerce_product_custom_text_input"
                                 value="Wprowadź tekst">
                             </div>',
             esc_html("Wpisz własny tekst")
@@ -146,10 +146,10 @@ function woocommerce_product_custom_text_additional_fields_display()
         printf(
             '<div class="custom-field-container">
                         <label>Wielkość czcionki</label>
-                            <input 
-                                type="number" 
-                                id="woocommerce_product_custom_text_font_size" 
-                                name="woocommerce_product_custom_text_font_size" 
+                            <input
+                                type="number"
+                                id="woocommerce_product_custom_text_font_size"
+                                name="woocommerce_product_custom_text_font_size"
                                 value="10">
                             </div>',
         );
@@ -410,6 +410,18 @@ add_action(
     'woocommerce_product_custom_image_upload_display'
 );
 
+// This is a hack with empty field - this way we can access custom project image created by user
+function product_custom_image_invisible_store() {
+    ?>
+        <input type="hidden" name="custom_project"/>
+    <?php
+};
+
+add_action(
+    'woocommerce_before_add_to_cart_button',
+    'product_custom_image_invisible_store'
+);
+
 // PRODUCT: Show uploaded image() on product page
 function woocommerce_product_custom_image_show_on_upload()
 {
@@ -499,20 +511,18 @@ function woocommerce_product_custom_image_show_on_upload()
                 canvas.renderAll();
             }
 
-            // add button to download project
-            colorPicker.insertAdjacentHTML('afterend', `
-                    <a id="lnkDownload" href="#">Download your project as png</a>
-                `);
-
-            const imageSaver = document.getElementById('lnkDownload');
+            // get add to cart button, on click save image
+            const imageSaver = document.getElementsByName('add-to-cart')[0];
             imageSaver.addEventListener('click', saveImage, false);
 
             function saveImage(e) {
-                this.href = canvas.toDataURL({
+				var base64Output = canvas.toDataURL({
                     format: 'png',
                     quality: 1,
                 });
-                this.download = 'canvas.png'
+
+                // pass the value to our hidden field
+                document.getElementsByName('custom_project')[0].value = base64Output;
             }
 
             $(window).on('load', function () {
@@ -541,15 +551,10 @@ function woocommerce_add_custom_image_to_cart_item(
     $variation_id
 )
 {
-    $product_custom_image = filter_input(
-        INPUT_POST,
-        'custom_image'
-    );
+    $custom_img_value = $_POST['custom_project'];
 
-    if (!empty($product_custom_image)) {
-
-
-        $cart_item_data['product_custom_image'] = $product_custom_image;
+    if (!empty($custom_img_value)) {
+        $cart_item_data['product_custom_image'] = $custom_img_value;
     }
     return $cart_item_data;
 }
