@@ -575,11 +575,19 @@ function woocommerce_display_custom_image_order($item, $cart_item_key, $values, 
 {
     foreach ($item as $cart_item_key => $values) {
         if (!empty($values['product_custom_image'])) {
-            $item->add_meta_data(__('Custom image', 'image'), $values['product_custom_image'], true);
-        }
+            $item->add_meta_data(__('Custom image', 'img'), $values['product_custom_image'], true);        }
     }
 }
 
 add_action('woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4);
+
+// CART: Display custom item image thumbnail in cart
+function woocommerce_display_custom_item_cart( $_product_img, $cart_item, $cart_item_key ) {
+
+    $img      =   '<img src="'.$cart_item['product_custom_image'].'" />';
+    return $img;
+}
+
+add_filter( 'woocommerce_cart_item_thumbnail', 'woocommerce_display_custom_item_cart', 10, 3 );
 
 // ================== END OF CUSTOM IMAGE FUNCTIONS
