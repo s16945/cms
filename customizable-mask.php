@@ -1,15 +1,15 @@
 <?php
 /**
- * Plugin Name:       Theme Customisations
- * Description:       A handy little plugin to contain your theme customisation snippets.
- * Plugin URI:        http://github.com/woothemes/theme-customisations
- * Version:           1.0.0
- * Author:            WooThemes
- * Author URI:        https://www.woocommerce.com/
+ * Plugin Name:       Personalizowana maseczka
+ * Description:       Mała wtyczka umożliwiająca stworzenie modyfikowalnego produktu w WooCommerce.
+ * Plugin URI:        https://github.com/s16945/cms
+ * Version:           1.12.3
+ * Author:            Lukasz Gajewski, Marcin Pejski, Michal Karczmarczyk, Krzysztof Żebrowski
+ * Author URI:        pja.edu.pl
  * Requires at least: 3.0.0
  * Tested up to:      4.4.2
  *
- * @package Theme_Customisations
+ * @package noPackage
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,12 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Main Theme_Customisations Class
+ * Main Class
  *
- * @class Theme_Customisations
- * @version	1.0.0
- * @since 1.0.0
- * @package	Theme_Customisations
  */
 final class Theme_Customisations {
 
@@ -63,16 +59,6 @@ final class Theme_Customisations {
 		wp_enqueue_script('fabric', plugins_url('/custom/assets/fabric.min.js'));
 	}
 
-	/**
-	 * Look in this plugin for template files first.
-	 * This works for the top level templates (IE single.php, page.php etc). However, it doesn't work for
-	 * template parts yet (content.php, header.php etc).
-	 *
-	 * Relevant trac ticket; https://core.trac.wordpress.org/ticket/13239
-	 *
-	 * @param  string $template template string.
-	 * @return string $template new template string.
-	 */
 	public function theme_customisations_template( $template ) {
 		if ( file_exists( untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/custom/templates/' . basename( $template ) ) ) {
 			$template = untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/custom/templates/' . basename( $template );
@@ -81,17 +67,6 @@ final class Theme_Customisations {
 		return $template;
 	}
 
-	/**
-	 * Look in this plugin for WooCommerce template overrides.
-	 *
-	 * For example, if you want to override woocommerce/templates/cart/cart.php, you
-	 * can place the modified template in <plugindir>/custom/templates/woocommerce/cart/cart.php
-	 *
-	 * @param string $located is the currently located template, if any was found so far.
-	 * @param string $template_name is the name of the template (ex: cart/cart.php).
-	 * @return string $located is the newly located template if one was found, otherwise
-	 *                         it is the previously found template.
-	 */
 	public function theme_customisations_wc_get_template( $located, $template_name, $args, $template_path, $default_path ) {
 		$plugin_template_path = untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/custom/templates/woocommerce/' . $template_name;
 
@@ -113,6 +88,6 @@ function theme_customisations_main() {
 }
 
 /**
- * Initialise the plugin
+ * Initialize the plugin
  */
 add_action( 'plugins_loaded', 'theme_customisations_main' );
