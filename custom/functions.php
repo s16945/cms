@@ -472,11 +472,12 @@ function woocommerce_product_custom_image_show_on_upload()
             const initialText = 'Wprowadź tekst';
             canvas.fillStyle = "#fff";
             const textBox = new fabric.Text(initialText, {
-                left: 0,
-                top: 0,
+                left: 200,
+                top: 200,
                 fontSize: 10,
                 editable: false,
-                lockScalingY: true
+                lockScalingY: true,
+                lockScalingX: true,
             });
             canvas.add(textBox);
 
@@ -484,7 +485,7 @@ function woocommerce_product_custom_image_show_on_upload()
 
             if (imgUrl !== '') {
                 new fabric.Image.fromURL("<?php print($file_upload['guid'])?>", img => {
-                    img.set({top: 50, left: 50, height: 300, width: 300, scaleX: .50, scaleY: .50});
+                    img.set({top: 250, left: 250, height: 300, width: 300, scaleX: .50, scaleY: .50});
                     canvas.add(img);
                 });
             }
@@ -525,6 +526,7 @@ function woocommerce_product_custom_image_show_on_upload()
                 document.getElementsByName('custom_project')[0].value = base64Output;
             }
 
+            // set image as canvas background
             $(window).on('load', function () {
                 const img = $('img.zoomImg');
                 new fabric.Image.fromURL(img[0].src, myImg => {
@@ -533,6 +535,29 @@ function woocommerce_product_custom_image_show_on_upload()
                         scaleY: canvas.height / myImg.height
                     });
                 });
+            });
+
+            // limit object moving
+            canvas.on('object:moving', function (e) {
+                const obj = e.target;
+                // if object is too big ignore
+                if (obj.currentHeight > obj.canvas.height || obj.currentWidth > obj.canvas.width) {
+                    return;
+                }
+                obj.setCoords();
+                // top-left  corner
+                if (obj.getBoundingRect().top < 0.31 * canvas.height || obj.getBoundingRect().left < 0.12 * canvas.width) {
+                    obj.top = Math.max(obj.top, 0.31 * canvas.height);
+                    obj.left = Math.max(obj.left, 0.12 * canvas.width);
+                }
+                // bot-right corner
+                if (
+                    obj.getBoundingRect().top + obj.getBoundingRect().height > 0.71 * obj.canvas.height
+                    || obj.getBoundingRect().left + obj.getBoundingRect().width > 0.88 * obj.canvas.width
+                ) {
+                    obj.top = Math.min(obj.top, 0.71 * obj.canvas.height - obj.getBoundingRect().height + obj.top - obj.getBoundingRect().top);
+                    obj.left = Math.min(obj.left, 0.88 * obj.canvas.width - obj.getBoundingRect().width + obj.left - obj.getBoundingRect().left);
+                }
             });
         });
     </script>
