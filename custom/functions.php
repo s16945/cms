@@ -305,6 +305,7 @@ add_action('woocommerce_checkout_create_order_line_item', 'woocommerce_display_c
  */
 
 // ADMIN: Add checkbox in product panel to select if uploading custom image for product should be available
+
 function woocommerce_product_custom_image_upload()
 {
     $args = [
@@ -386,6 +387,12 @@ add_action(
 // PRODUCT: Show uploaded image() on product page
 function woocommerce_product_custom_image_show_on_upload()
 {
+ global $post;
+    $product = wc_get_product($post->ID);
+    $woocommerce_custom_product_image_allowed = $product->get_meta(
+        'woocommerce_custom_image_admin_checkbox'
+    );
+    if ($woocommerce_custom_product_image_allowed) {
     $file_upload = array();
 
     if (isset($_FILES['custom_image']) && !empty($_FILES['custom_image'])) {
@@ -523,6 +530,7 @@ function woocommerce_product_custom_image_show_on_upload()
         });
     </script>
     <?php
+    }
 }
 
 add_action(
