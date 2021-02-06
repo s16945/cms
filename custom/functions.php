@@ -273,7 +273,7 @@ function woocommerce_display_custom_color_cart($item_data, $cart_item)
         $item_data[] = [
             'key' => __('Wybrany kolor', 'woocommerce'),
             'value' => $cart_item['product_custom_color'],
-            'display' => '<label></label><div style="display: block; width: 50px; height: 20px; border: 1px solid black; background-color: ' . $cart_item['product_custom_color'] . '"/>',
+            'display' => '<label></label><div style="display: block; width: 50px; height: 20px; border: 1px solid black; background-color: '.$cart_item['product_custom_color'].'"/>',
 
         ];
     }
@@ -369,14 +369,11 @@ add_action(
 );
 
 // This is a hack with empty field - this way we can access custom project image created by user
-function product_custom_image_invisible_store()
-{
+function product_custom_image_invisible_store() {
     ?>
-    <input type="hidden" name="custom_project"/>
+        <input type="hidden" name="custom_project"/>
     <?php
-}
-
-;
+};
 
 add_action(
     'woocommerce_before_add_to_cart_button',
@@ -478,7 +475,7 @@ function woocommerce_product_custom_image_show_on_upload()
             imageSaver.addEventListener('click', saveImage, false);
 
             function saveImage(e) {
-                var base64Output = canvas.toDataURL({
+				var base64Output = canvas.toDataURL({
                     format: 'png',
                     quality: 1,
                 });
@@ -489,7 +486,7 @@ function woocommerce_product_custom_image_show_on_upload()
 
             // set image as canvas background
             $(window).on('load', function () {
-                const img = $('img.wp-post-image');
+                const img = $('img.zoomImg');
                 new fabric.Image.fromURL(img[0].src, myImg => {
                     canvas.setBackgroundImage(myImg, canvas.renderAll.bind(canvas), {
                         scaleX: canvas.width / myImg.width,
@@ -579,33 +576,21 @@ function woocommerce_display_custom_image_order($item, $cart_item_key, $values, 
 {
     foreach ($item as $cart_item_key => $values) {
         if (!empty($values['product_custom_image'])) {
-            $item->add_meta_data(__('Custom image', 'img'), $values['product_custom_image'], true);
-        }
+            $item->add_meta_data(__('Custom image', 'img'), $values['product_custom_image'], true);        }
     }
 }
 
 add_action('woocommerce_checkout_create_order_line_item', 'woocommerce_display_custom_color_order', 10, 4);
 
 // CART: Display custom item image thumbnail in cart
-function woocommerce_display_custom_item_cart($_product_img, $cart_item, $cart_item_key)
-{
+function woocommerce_display_custom_item_cart( $_product_img, $cart_item, $cart_item_key ) {
 
-    $img = '<img src="' . $cart_item['product_custom_image'] . '" />';
+    $img      =   '<img src="'.$cart_item['product_custom_image'].'" />';
     return $img;
 }
 
-add_filter('woocommerce_cart_item_thumbnail', 'woocommerce_display_custom_item_cart', 10, 3);
+add_filter( 'woocommerce_cart_item_thumbnail', 'woocommerce_display_custom_item_cart', 10, 3 );
 
 // ================== END OF CUSTOM IMAGE FUNCTIONS
 
 
-// Custom thumbnail in admin order view
-function woocommerce_admin_order_item_thumbnail($image, $item_id, $item)
-{
-    $img = '<img width="150" height="150" src="' . $item . '" />';
-    return $img;
-}
-
-;
-
-add_filter('woocommerce_admin_order_item_thumbnail', 'filter_woocommerce_admin_order_item_thumbnail', 10, 3);
